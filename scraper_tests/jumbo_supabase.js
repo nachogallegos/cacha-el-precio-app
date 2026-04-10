@@ -12,25 +12,35 @@ const supabase = createClient(
 // ============================================================
 // PARSER: Convierte texto crudo en objeto estructurado
 // ============================================================
-function parseProductText(rawText, supermarketId) {
+function parseProductText(rawText, supermarketId, imageUrl = null) {
   // El scraper extrae texto así:
   // "$1.350 | $1.350 x lt | Colun | Leche Colun Entera 1 L | Agregar | 4.9"
   const parts = rawText.split(' | ').map(p => p.trim()).filter(p => p.length > 0);
 
-  // Buscar precio (empieza con $)
+  // Detectar textos que son PRECIOS PROMOCIONALES, no nombres (ej: "Lleva 2 por $2.050")
+  const isPromoText = (s) =>
+    s.includes('$') ||
+    /^lleva \d/i.test(s) ||
+    /^\d+ por \d/i.test(s) ||
+    /^4 por/i.test(s) ||
+    /^paga \$/i.test(s) ||
+    /^pack \d/i.test(s);
+
+  // Buscar precio principal (empieza con $ pero NO es un precio unitario)
   const pricePart = parts.find(p => p.startsWith('$') && !p.includes('x '));
   const unitPricePart = parts.find(p => p.includes('x '));
 
   // Limpiar precio: "$1.350" -> 1350
   const price = pricePart
-    ? parseInt(pricePart.replace(/\$|\.|\s/g, ''), 10)
+    ? parseInt(pricePart.replace(/\$|\./g, '').trim(), 10)
     : null;
 
-  // Buscar marca (suele ser 1-3 palabras sin $ ni números al inicio)
+  // Buscar marca (1-3 palabras, sin $, corta, NO texto promo)
   const brand = parts.find(p =>
     !p.startsWith('$') &&
     !p.match(/^\d/) &&
     p !== 'Agregar' &&
+    !isPromoText(p) &&
     !p.match(/producto/i) &&
     !p.match(/oferta/i) &&
     !p.match(/patrocinado/i) &&
@@ -38,19 +48,20 @@ function parseProductText(rawText, supermarketId) {
     parts.indexOf(p) > 1
   );
 
-  // El nombre del producto es el string más largo que no sea precio
+  // El nombre real: texto largo, sin $, no promo, no marca
   const name = parts.find(p =>
     !p.startsWith('$') &&
     p !== 'Agregar' &&
     p !== brand &&
     !p.match(/^\d/) &&
+    !isPromoText(p) &&
     !p.match(/producto sin calificar/i) &&
     !p.match(/oferta/i) &&
     !p.match(/patrocinado/i) &&
-    p.length > 10
+    p.length > 8
   );
 
-  if (!price || !name) return null;
+  if (!price || !name || isNaN(price) || price > 500000) return null;
 
   // EAN sin caracteres especiales
   const fakeEan = 'EAN_' + name
@@ -68,7 +79,7 @@ function parseProductText(rawText, supermarketId) {
     formatted_unit: unitPricePart || null,
     supermarket_id: supermarketId,
     category: 'Lácteos',
-    image_url: null,
+    image_url: imageUrl,  // URL real de Jumbo si la capturamos
   };
 }
 
@@ -148,9 +159,6 @@ async function scrapeAndSave(query, supermarketId = 'jumbo') {
   const rawProducts = await page.evaluate(() => {
     let results = [];
 
-    // Selector exacto detectado: tarjetas de la grilla de productos de Jumbo
-    // Clase principal: "border rounded-t-lg flex flex-col items-left font-normal self-stretch h-auto"
-    // Clase alternativa plp_card también sirve
     const cards = document.querySelectorAll(
       '[class*="plp_card"], [class*="border rounded-t-lg"], [class*="rounded-t-lg flex flex-col items-left"]'
     );
@@ -158,7 +166,13 @@ async function scrapeAndSave(query, supermarketId = 'jumbo') {
     cards.forEach(card => {
       const txt = card.innerText;
       if (txt && txt.includes('$') && txt.length < 400) {
-        results.push(txt.split('\n').filter(t => t.trim() !== '').join(' | '));
+        // Extraer imagen del tag <img> dentro de la tarjeta
+        const img = card.querySelector('img');
+        const imgUrl = img ? (img.src || img.dataset.src || null) : null;
+        results.push({
+          text: txt.split('\n').filter(t => t.trim() !== '').join(' | '),
+          imageUrl: imgUrl,
+        });
       }
     });
 
@@ -170,7 +184,7 @@ async function scrapeAndSave(query, supermarketId = 'jumbo') {
 
   // Parsear cada bloque de texto en objeto estructurado
   const structured = rawProducts
-    .map(raw => parseProductText(raw, supermarketId))
+    .map(raw => parseProductText(raw.text || raw, supermarketId, raw.imageUrl || null))
     .filter(p => p !== null);
 
   console.log(`       → ${structured.length} productos válidos identificados`);

@@ -1,25 +1,35 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, SafeAreaView, Alert, Keyboard, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, SafeAreaView, Alert, Keyboard, Modal, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { supermarkets, fullProductsDatabase } from '../data/mockData';
+import { supermarkets } from '../data/mockData';
+import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 import { ListContext } from '../context/ListContext';
 import { AlertsContext } from '../context/AlertsContext';
 import { ActivityContext } from '../context/ActivityContext';
 import ProductDetailScreen from './ProductDetailScreen';
 
 export default function SearchScreen({ route }) {
-  const availableCategories = useMemo(() => Array.from(new Set(fullProductsDatabase.map(p => p.category))), []);
+  const { products: supabaseProducts, loading: dbLoading, searchProducts } = useSupabaseProducts();
+  
+  // Mezclar productos de Supabase con los de mockData (fallback)
+  const fullProductsDatabase = supabaseProducts.length > 0 ? supabaseProducts : [];
+  const availableCategories = useMemo(() => {
+    const cats = Array.from(new Set(fullProductsDatabase.map(p => p.category).filter(Boolean)));
+    return cats.length > 0 ? cats : ['Lácteos', 'Despensa', 'Bebidas'];
+  }, [fullProductsDatabase]);
 
   const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null); 
-  const [activeCategory, setActiveCategory] = useState(availableCategories[0]); 
+  const [activeCategory, setActiveCategory] = useState(null); 
   const [activeStores, setActiveStores] = useState(supermarkets.map(s => s.id));
   const [sortAscending, setSortAscending] = useState(true);
   const [detailItem, setDetailItem] = useState(null); 
   const [touchStartX, setTouchStartX] = useState(0);
   const [isCratingDelay, setIsCratingDelay] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   const { addToList } = useContext(ListContext);
   const { addAlert } = useContext(AlertsContext);
@@ -92,9 +102,9 @@ export default function SearchScreen({ route }) {
 
   // Lista de Categoría para el modo exploración
   const categoryProducts = useMemo(() => {
-    if (!activeCategory) return [];
+    if (!activeCategory) return fullProductsDatabase; // Sin filtro -> todos
     return fullProductsDatabase.filter(p => p.category === activeCategory);
-  }, [activeCategory]);
+  }, [activeCategory, fullProductsDatabase]);
 
   const handleAddToList = (priceItem) => {
     addToList(selectedProduct);
@@ -192,7 +202,10 @@ export default function SearchScreen({ route }) {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.catalogGrid}>
               <View style={styles.catalogHeader}>
-                <Text style={styles.catalogTitle}>Productos de {activeCategory}</Text>
+                <Text style={styles.catalogTitle}>
+                  {activeCategory ? `Productos de ${activeCategory}` : 'Todos los productos'}
+                </Text>
+                {dbLoading && <ActivityIndicator size="small" color={colors.primary} style={{marginLeft: 8}} />}
               </View>
 
               <View style={styles.gridWrap}>

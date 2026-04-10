@@ -1,16 +1,16 @@
 export const supermarkets = [
-  { id: '1', name: 'Líder', color: '#005CE6', logoUrl: 'https://www.google.com/s2/favicons?domain=lider.cl&sz=128' },
-  { id: '2', name: 'Jumbo', color: '#166534', logoUrl: 'https://www.google.com/s2/favicons?domain=jumbo.cl&sz=128' },
-  { id: '3', name: 'Santa Isabel', color: '#DC2626', logoUrl: 'https://www.google.com/s2/favicons?domain=santaisabel.cl&sz=128' },
-  { id: '4', name: 'Unimarc', color: '#E11D48', logoUrl: 'https://www.google.com/s2/favicons?domain=unimarc.cl&sz=128' },
+  { id: 'lider',       name: 'Líder',        color: '#005CE6', logoUrl: 'https://www.google.com/s2/favicons?domain=lider.cl&sz=128' },
+  { id: 'jumbo',       name: 'Jumbo',        color: '#00B238', logoUrl: 'https://www.google.com/s2/favicons?domain=jumbo.cl&sz=128' },
+  { id: 'santaisabel', name: 'Santa Isabel', color: '#E4002B', logoUrl: 'https://www.google.com/s2/favicons?domain=santaisabel.cl&sz=128' },
+  { id: 'unimarc',     name: 'Unimarc',      color: '#DA291C', logoUrl: 'https://www.google.com/s2/favicons?domain=unimarc.cl&sz=128' },
 ];
 
 const generatePrices = (basePrice) => {
   return [
-    { supermarketId: '1', price: Math.round(basePrice * (0.9 + Math.random() * 0.2) / 10) * 10, stock: true },
-    { supermarketId: '2', price: Math.round(basePrice * (0.95 + Math.random() * 0.25) / 10) * 10, stock: true },
-    { supermarketId: '3', price: Math.round(basePrice * (0.92 + Math.random() * 0.22) / 10) * 10, stock: Math.random() > 0.1 },
-    { supermarketId: '4', price: Math.round(basePrice * (0.93 + Math.random() * 0.2) / 10) * 10, stock: true },
+    { supermarketId: 'lider',       price: Math.round(basePrice * (0.9  + Math.random() * 0.2)  / 10) * 10, stock: true },
+    { supermarketId: 'jumbo',       price: Math.round(basePrice * (0.95 + Math.random() * 0.25) / 10) * 10, stock: true },
+    { supermarketId: 'santaisabel', price: Math.round(basePrice * (0.92 + Math.random() * 0.22) / 10) * 10, stock: Math.random() > 0.1 },
+    { supermarketId: 'unimarc',     price: Math.round(basePrice * (0.93 + Math.random() * 0.2)  / 10) * 10, stock: true },
   ];
 };
 
