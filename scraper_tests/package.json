@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@supabase/supabase-js": "^2.103.0",
     "axios": "^1.15.0",
     "cheerio": "^1.2.0",
     "puppeteer": "^24.40.0"
