@@ -8,15 +8,21 @@ import { ActivityContext } from '../context/ActivityContext';
 const zonesList = ['Región Metropolitana', 'Región de Valparaíso', 'Región del Biobío', 'Región de Coquimbo'];
 
 export default function ProfileScreen() {
-  const { user, logout, updateZone } = useContext(AuthContext);
+  const { user, profile, logout, updateZone } = useContext(AuthContext);
   const { resetSavings } = useContext(ActivityContext);
 
   if (!user) return null;
 
+  // Compatibilidad con Supabase Auth: el nombre viene del perfil, el email del user
+  const displayName = profile?.full_name || user.email?.split('@')[0] || 'Usuario';
+  const displayEmail = user.email || '';
+  const displayZone = profile?.region || 'Región Metropolitana';
+  const avatarLetter = displayName.charAt(0).toUpperCase();
+
   const handleZoneChange = () => {
     Alert.alert(
       "Cambiar Región",
-      "Selecciona tu zona para adaptar los precios (Simulación):",
+      "Selecciona tu zona para adaptar los precios:",
       zonesList.map(z => ({
         text: z,
         onPress: () => updateZone(z)
@@ -38,24 +44,20 @@ export default function ProfileScreen() {
     Alert.alert(title, "Esta función estará disponible en la próxima actualización.");
   };
 
-  const currentIcon = user.provider === 'Google' ? 'logo-google' 
-                    : user.provider === 'Apple' ? 'logo-apple' 
-                    : 'call';
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         
         <View style={styles.headerBox}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
+            <Text style={styles.avatarText}>{avatarLetter}</Text>
           </View>
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userEmail}>{user.email || user.provider}</Text>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userEmail}>{displayEmail}</Text>
           
           <View style={styles.providerBadge}>
-            <Ionicons name={currentIcon} size={14} color={colors.text} style={{marginRight: 4}} />
-            <Text style={styles.providerText}>Conectado vía {user.provider}</Text>
+            <Ionicons name="mail" size={14} color={colors.text} style={{marginRight: 4}} />
+            <Text style={styles.providerText}>Cuenta Email</Text>
           </View>
         </View>
 
@@ -86,7 +88,7 @@ export default function ProfileScreen() {
               <Text style={styles.rowText}>Zona de Precios</Text>
             </View>
             <View style={styles.rowRight}>
-              <Text style={styles.rowValue} numberOfLines={1} ellipsizeMode="tail">{user.zone}</Text>
+              <Text style={styles.rowValue} numberOfLines={1} ellipsizeMode="tail">{displayZone}</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.border} />
             </View>
           </TouchableOpacity>
@@ -114,12 +116,13 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Cerrar Sesión Segura</Text>
         </TouchableOpacity>
 
-        <Text style={styles.versioning}>SuperAhorro v1.0.0 (Expo)</Text>
+        <Text style={styles.versioning}>Cacha el Precio v1.0.0</Text>
         <Text style={styles.versioningSub}>ID: {user.id}</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
