@@ -2,11 +2,13 @@ import React, { useContext, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Modal, Keyboard, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { supermarkets, fullProductsDatabase } from '../data/mockData';
+import { supermarkets } from '../data/mockData';
 import { AlertsContext } from '../context/AlertsContext';
+import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 
 export default function AlertsScreen() {
   const { alerts, addAlert, updateAlert, togglePause, removeAlert } = useContext(AlertsContext);
+  const { products: fullProductsDatabase } = useSupabaseProducts();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingAlertId, setEditingAlertId] = useState(null);
@@ -66,7 +68,7 @@ export default function AlertsScreen() {
     if (editingAlertId) {
       updateAlert(editingAlertId, selectedProduct.id, targetPriceInput, selectedStores);
     } else {
-      addAlert(selectedProduct.id, targetPriceInput, selectedStores);
+      addAlert(selectedProduct.id, selectedProduct.name, targetPriceInput, selectedStores);
     }
     
     closeModal();
@@ -76,6 +78,8 @@ export default function AlertsScreen() {
   const computedAlerts = useMemo(() => {
     return alerts.map(alert => {
       const product = fullProductsDatabase.find(p => p.id === alert.productId);
+      
+      // Si aùn no carga la DB
       if(!product) return { ...alert, triggered: false, currentBestPrice: 0 };
 
       // Filtrar a las tiendas de la alerta que tengan stock
@@ -96,7 +100,7 @@ export default function AlertsScreen() {
         bestStoreName
       };
     });
-  }, [alerts]);
+  }, [alerts, fullProductsDatabase]);
 
 
   return (
@@ -176,7 +180,7 @@ export default function AlertsScreen() {
 
         {/* Modal de Creación */}
         <Modal visible={showCreateModal} animationType="slide" transparent={true}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <View style={styles.modalHeader}>
@@ -240,7 +244,7 @@ export default function AlertsScreen() {
                     })}
                   </View>
 
-                  <TouchableOpacity style={styles.saveAlertFinalBtn} onPress={handleSaveAlert}>
+                  <TouchableOpacity style={[styles.saveAlertFinalBtn, { marginBottom: 40 }]} onPress={handleSaveAlert}>
                     <Text style={styles.saveAlertFinalText}>{editingAlertId ? "Guardar Cambios" : "Guardar Alerta"}</Text>
                   </TouchableOpacity>
                 </>

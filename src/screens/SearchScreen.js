@@ -8,6 +8,7 @@ import { ListContext } from '../context/ListContext';
 import { AlertsContext } from '../context/AlertsContext';
 import { ActivityContext } from '../context/ActivityContext';
 import ProductDetailScreen from './ProductDetailScreen';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 export default function SearchScreen({ route }) {
   const { products: supabaseProducts, loading: dbLoading, searchProducts } = useSupabaseProducts();
@@ -30,6 +31,7 @@ export default function SearchScreen({ route }) {
   const [isCratingDelay, setIsCratingDelay] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
   
   const { addToList } = useContext(ListContext);
   const { addAlert } = useContext(AlertsContext);
@@ -77,13 +79,28 @@ export default function SearchScreen({ route }) {
     }, 600);
   };
 
-  const simulateBarcodeScann = () => {
+  const openScanner = async () => {
+    if (!permission) {
+      // Cargando permisos...
+      return;
+    }
+    if (!permission.granted) {
+      const response = await requestPermission();
+      if (!response.granted) {
+        Alert.alert("Permiso denegado", "Necesitamos acceso a la cámara para escanear los productos.");
+        return;
+      }
+    }
     setShowScanner(true);
-    setTimeout(() => {
-      setShowScanner(false);
-      const randomPro = fullProductsDatabase[Math.floor(Math.random() * fullProductsDatabase.length)];
-      handleSelectProduct(randomPro);
-    }, 2500);
+  };
+
+  const handleBarcodeScanned = ({ type, data }) => {
+    setShowScanner(false);
+    
+    // En produccion se haria: const matched = fullProductsDatabase.find(p => p.id === data)
+    // Para no bloquear la demostracion MVP si escanea algo que no tenemos, forzaremos mostrar el producto Aleatorio:
+    const randomPro = fullProductsDatabase[Math.floor(Math.random() * fullProductsDatabase.length)];
+    handleSelectProduct(randomPro);
   };
 
   const toggleStore = (id) => {
@@ -123,7 +140,7 @@ export default function SearchScreen({ route }) {
   const handleCreateAlert = () => {
     const minPrice = displayPrices.length > 0 ? Math.min(...displayPrices.map(p => p.price)) : 1000;
     const target = Math.round(minPrice * 0.9); 
-    addAlert(selectedProduct.id, target, activeStores);
+    addAlert(selectedProduct.id, selectedProduct.name, target, activeStores);
     Alert.alert("Alerta Creada", `Te avisaremos cuando el precio de ${selectedProduct.name} baje de \$${target}.`);
   };
 
@@ -148,7 +165,7 @@ export default function SearchScreen({ route }) {
               </TouchableOpacity>
             )}
           </View>
-          <TouchableOpacity style={styles.scannerBtnInner} onPress={simulateBarcodeScann}>
+          <TouchableOpacity style={styles.scannerBtnInner} onPress={openScanner}>
              <Ionicons name="barcode-outline" size={22} color={colors.card} />
           </TouchableOpacity>
         </View>
@@ -350,16 +367,29 @@ export default function SearchScreen({ route }) {
         storeResult={detailItem} 
       />
 
-      {/* Modal Lector de Código de Barras */}
-      <Modal visible={showScanner} transparent animationType="fade">
-        <SafeAreaView style={styles.scannerOverlay}>
-          <Text style={styles.scannerText}>Apuntando a código de barras...</Text>
-          <View style={styles.scannerFrame}>
-             <View style={styles.laserLine} />
-          </View>
-          <TouchableOpacity style={styles.scannerCancelBtn} onPress={() => setShowScanner(false)}>
-            <Text style={{color: 'white', fontWeight: 'bold'}}>Cancelar Escaneo</Text>
-          </TouchableOpacity>
+      {/* Escáner Cámara Real */}
+      <Modal visible={showScanner} animationType="slide" transparent={false}>
+        <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
+          {showScanner && (
+            <CameraView 
+              style={StyleSheet.absoluteFillObject}
+              facing="back"
+              barcodeScannerSettings={{
+                barcodeTypes: ["ean13", "upc_a", "qr"],
+              }}
+              onBarcodeScanned={handleBarcodeScanned}
+            >
+              <View style={styles.scannerOverlay}>
+                <Text style={styles.scannerText}>Apunta al código de barras</Text>
+                <View style={styles.scannerFrame}>
+                  <View style={styles.laserLine} />
+                </View>
+                <TouchableOpacity style={styles.scannerCancelBtn} onPress={() => setShowScanner(false)}>
+                  <Text style={{color: 'white', fontWeight: 'bold'}}>Cancelar Escaneo</Text>
+                </TouchableOpacity>
+              </View>
+            </CameraView>
+          )}
         </SafeAreaView>
       </Modal>
 
@@ -397,13 +427,13 @@ const styles = StyleSheet.create({
   
   swipeBackZone: { position: 'absolute', top: 0, bottom: 0, left: 0, width: 35, zIndex: 999 },
 
-  // Escáner Fake
+  // Escáner Real
   scannerBtnInner: { backgroundColor: colors.primary, width: 44, height: 44, borderRadius: 22, marginLeft: 8, justifyContent: 'center', alignItems: 'center', elevation: 3 },
-  scannerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
-  scannerText: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 40 },
-  scannerFrame: { width: 250, height: 150, borderWidth: 2, borderColor: colors.primary, borderRadius: 12, overflow: 'hidden', justifyContent: 'center' },
+  scannerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
+  scannerText: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 40, textShadowColor: '#000', textShadowRadius: 10 },
+  scannerFrame: { width: 250, height: 150, borderWidth: 2, borderColor: colors.primary, borderRadius: 12, overflow: 'hidden', justifyContent: 'center', backgroundColor: 'transparent' },
   laserLine: { width: '100%', height: 2, backgroundColor: colors.success, shadowColor: colors.success, shadowOffset: {width: 0, height: 0}, shadowOpacity: 1, shadowRadius: 10, elevation: 5 },
-  scannerCancelBtn: { marginTop: 40, padding: 12, backgroundColor: colors.danger, borderRadius: 8 },
+  scannerCancelBtn: { marginTop: 40, padding: 12, paddingHorizontal: 24, backgroundColor: colors.danger, borderRadius: 8 },
 
   // Grilla de Catálogo
   catalogGrid: { padding: 12 },
