@@ -1,0 +1,47 @@
+name: Supermarket Scrapers (Diario)
+
+on:
+  schedule:
+    # Ejecutar todos los días a las 08:00 UTC (04:00 AM Hora de Chile, antes de que despierte la gente)
+    - cron: '0 8 * * *'
+  # Este comando permite hacer clic en un botón en GitHub para ejecutarlo manualmente a la hora que quieras
+  workflow_dispatch:
+
+jobs:
+  scrape-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Chequear el código del repositorio
+      uses: actions/checkout@v4
+
+    - name: Preparar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Instalar Dependencias del Bot
+      run: |
+        cd scraper_tests
+        npm init -y
+        npm install puppeteer @supabase/supabase-js
+        
+    # Las tareas se ejecutan consecutivamente
+    - name: 🤖 Scraper Lider
+      run: cd scraper_tests && node lider_supabase.js
+      
+    - name: 🤖 Scraper Santa Isabel
+      run: cd scraper_tests && node santaisabel_supabase.js
+      
+    - name: 🤖 Scraper Jumbo
+      run: cd scraper_tests && node jumbo_supabase.js
+      
+    - name: 🤖 Scraper Tottus
+      run: cd scraper_tests && node tottus_supabase.js
+      
+    - name: 🤖 Scraper Unimarc
+      run: cd scraper_tests && node unimarc_supabase.js
+      
+    - name: 🧹 Limpiar y Mapear Categorías
+      run: cd scraper_tests && node fix_categories.js

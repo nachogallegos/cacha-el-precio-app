@@ -3,6 +3,7 @@ export const supermarkets = [
   { id: 'jumbo',       name: 'Jumbo',        color: '#00B238', logoUrl: 'https://www.google.com/s2/favicons?domain=jumbo.cl&sz=128' },
   { id: 'santaisabel', name: 'Santa Isabel', color: '#E4002B', logoUrl: 'https://www.google.com/s2/favicons?domain=santaisabel.cl&sz=128' },
   { id: 'unimarc',     name: 'Unimarc',      color: '#DA291C', logoUrl: 'https://www.google.com/s2/favicons?domain=unimarc.cl&sz=128' },
+  { id: 'tottus',      name: 'Tottus',       color: '#00B140', logoUrl: 'https://www.google.com/s2/favicons?domain=tottus.cl&sz=128' },
 ];
 
 const generatePrices = (basePrice) => {

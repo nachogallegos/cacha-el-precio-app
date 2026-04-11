@@ -79,7 +79,7 @@ function parseProductText(rawText, supermarketId, imageUrl = null, category = 'L
     formatted_unit: unitPricePart || null,
     supermarket_id: supermarketId,
     category: category,
-    image_url: imageUrl,  // URL real de Jumbo si la capturamos
+    image_url: imageUrl,  // URL real de Santa Isabel si la capturamos
   };
 }
 
@@ -133,7 +133,7 @@ async function saveToSupabase(products) {
 // ============================================================
 // SCRAPER PRINCIPAL
 // ============================================================
-async function scrapeAndSave(query, category = 'Lácteos', supermarketId = 'jumbo') {
+async function scrapeAndSave(query, category = 'Lácteos', supermarketId = 'santaisabel') {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`  🤖 CACHA EL PRECIO - BOT DE EXTRACCIÓN`);
   console.log(`  Supermercado : ${supermarketId.toUpperCase()}`);
@@ -150,8 +150,8 @@ async function scrapeAndSave(query, category = 'Lácteos', supermarketId = 'jumb
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36');
   await page.setViewport({ width: 1366, height: 768 });
 
-  const url = `https://www.jumbo.cl/busqueda?ft=${encodeURIComponent(query)}`;
-  console.log(`[1/4] 🌐 Conectando a Jumbo...`);
+  const url = `https://www.santaisabel.cl/busqueda?ft=${encodeURIComponent(query)}`;
+  console.log(`[1/4] 🌐 Conectando a Santa Isabel...`);
 
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
   console.log(`[2/4] ✅ Página cargada. Scrolleando para cargar imágenes lazy...`);
@@ -253,7 +253,7 @@ async function runAll() {
   await scrapeAndSave('leche', 'Lácteos');
   await scrapeAndSave('arroz', 'Despensa');
   await scrapeAndSave('aceite', 'Despensa');
-  console.log('\n🌟 TODO JUMBO LISTO');
+  console.log('\n🌟 TODO SANTA ISABEL LISTO');
 }
 
 runAll();

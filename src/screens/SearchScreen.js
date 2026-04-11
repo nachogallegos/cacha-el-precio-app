@@ -22,7 +22,7 @@ export default function SearchScreen({ route }) {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null); 
-  const [activeCategory, setActiveCategory] = useState(null); 
+  const [activeCategory, setActiveCategory] = useState('Lácteos'); // Por defecto para evitar ver "Todos" mezclados
   const [activeStores, setActiveStores] = useState(supermarkets.map(s => s.id));
   const [sortAscending, setSortAscending] = useState(true);
   const [detailItem, setDetailItem] = useState(null); 
@@ -95,10 +95,18 @@ export default function SearchScreen({ route }) {
   // Comparador de Precios para el producto seleccionado
   const displayPrices = useMemo(() => {
     if (!selectedProduct) return [];
-    let prices = selectedProduct.prices.filter(p => activeStores.includes(p.supermarketId));
+    // Extraer solo 1 precio (el más bajo) por supermercado para no repetir logos
+    const uniqueMap = {};
+    selectedProduct.prices.forEach(p => {
+      if (!uniqueMap[p.supermarketId] || p.price < uniqueMap[p.supermarketId].price) {
+        uniqueMap[p.supermarketId] = p;
+      }
+    });
+
+    let prices = Object.values(uniqueMap);
     prices.sort((a, b) => sortAscending ? a.price - b.price : b.price - a.price);
     return prices;
-  }, [selectedProduct, activeStores, sortAscending]);
+  }, [selectedProduct, sortAscending]);
 
   // Lista de Categoría para el modo exploración
   const categoryProducts = useMemo(() => {
@@ -276,12 +284,12 @@ export default function SearchScreen({ route }) {
             ) : (
               <View style={styles.pricesList}>
                 {displayPrices.map((result, index) => {
-                  const sm = supermarkets.find(s => s.id === result.supermarketId);
+                  const sm = supermarkets.find(s => s.id === result.supermarketId) || { name: result.supermarketId, color: '#999' };
                   const isBestPrice = index === 0 && sortAscending; 
 
                   return (
                     <TouchableOpacity 
-                      key={result.supermarketId} 
+                      key={`${result.supermarketId}-${index}`} 
                       style={[styles.priceCard, isBestPrice && styles.bestPriceCard]}
                       activeOpacity={0.7}
                       onPress={() => setDetailItem(result)}
@@ -291,22 +299,25 @@ export default function SearchScreen({ route }) {
                           <Text style={styles.bestPriceText}>Mejor Precio</Text>
                         </View>
                       )}
-                      <View style={styles.priceCardHeader}>
-                        <View style={[styles.colorDot, { backgroundColor: sm.color }]} />
-                        <Text style={styles.supermarketName}>{sm.name}</Text>
-                        {!result.stock && (
-                          <Text style={styles.noStockText}>(Probable Falta de Stock)</Text>
-                        )}
-                      </View>
-                      <View style={styles.priceRow}>
-                        <Text style={styles.priceValue}>${result.price}</Text>
-                        <TouchableOpacity 
-                          style={[styles.addBtn, !result.stock && { backgroundColor: colors.textMuted }]}
-                          onPress={() => handleAddToList(result)}
-                        >
-                          <Ionicons name="add" size={16} color={colors.card} style={{marginRight:4}} />
-                          <Text style={styles.addBtnText}>A Mi Lista</Text>
-                        </TouchableOpacity>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                          <View style={[styles.colorDot, { backgroundColor: sm.color }]} />
+                          <View>
+                            <Text style={styles.supermarketName}>{sm.name}</Text>
+                            {!result.stock && <Text style={styles.noStockText}>(Sin stock)</Text>}
+                          </View>
+                        </View>
+                        
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <Text style={styles.priceValue}>${result.price}</Text>
+                          <TouchableOpacity 
+                            style={[styles.addBtn, !result.stock && { backgroundColor: colors.textMuted }]}
+                            onPress={() => handleAddToList(result)}
+                          >
+                            <Ionicons name="add" size={14} color={colors.card} style={{marginRight:2}} />
+                            <Text style={styles.addBtnText}>Lista</Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     </TouchableOpacity>
                   );
@@ -425,18 +436,16 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 40 },
   emptyText: { color: colors.textMuted, fontSize: 16 },
   
-  pricesList: { gap: 10 },
-  priceCard: { backgroundColor: colors.card, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border },
-  bestPriceCard: { borderColor: colors.success, borderWidth: 2, marginTop: 6 },
+  pricesList: { gap: 8 },
+  priceCard: { backgroundColor: colors.card, paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border },
+  bestPriceCard: { borderColor: colors.success, borderWidth: 2, marginTop: 4 },
   bestPriceBadge: { position: 'absolute', top: -10, left: 12, backgroundColor: colors.success, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   bestPriceText: { color: colors.card, fontSize: 10, fontWeight: 'bold' },
-  priceCardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  colorDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+  colorDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   supermarketName: { fontSize: 14, fontWeight: 'bold', color: colors.text },
-  noStockText: { color: colors.danger, fontSize: 10, marginLeft: 6 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  priceValue: { fontSize: 20, fontWeight: 'bold', color: colors.text },
-  addBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  noStockText: { color: colors.danger, fontSize: 10, marginTop: 2 },
+  priceValue: { fontSize: 17, fontWeight: '900', color: colors.text },
+  addBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6 },
   addBtnText: { color: colors.card, fontWeight: 'bold', fontSize: 12 },
   bottomSpacer: { height: 40 }
 });

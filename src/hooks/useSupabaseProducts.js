@@ -1,10 +1,22 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../config/supabaseClient';
 
-// Genera imagen placeholder con el nombre del producto usando ui-avatars
-const makePlaceholder = (name = 'Producto', brand = '') => {
-  const initials = (brand + ' ' + name).substring(0, 2).toUpperCase();
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name.substring(0, 20))}&background=FDF8F8&color=E5484D&size=200&bold=true&font-size=0.28`;
+// Placeholder confiable: usamos picsum con seed determinista por nombre
+const makePlaceholder = (name = 'Producto') => {
+  // Generamos un número seed basado en el texto del nombre
+  let seed = 0;
+  for (let i = 0; i < name.length; i++) seed += name.charCodeAt(i);
+  seed = (seed % 80) + 1; // Entre 1 y 80
+  return `https://picsum.photos/seed/${seed}/200/200`;
+};
+
+// React Native NO renderiza SVGs — solo aceptamos jpg/png/webp
+const getValidImage = (url, name) => {
+  if (!url) return makePlaceholder(name);
+  const lower = url.toLowerCase();
+  if (lower.endsWith('.svg') || lower.includes('.svg?')) return makePlaceholder(name);
+  if (lower.startsWith('http')) return url;
+  return makePlaceholder(name);
 };
 
 // Hook para buscar productos en Supabase con precios reales
@@ -43,13 +55,12 @@ export function useSupabaseProducts() {
         name: p.name,
         brand: p.brand || 'Sin marca',
         category: p.category || 'General',
-        // Si no hay imagen del scraper, usar placeholder elegante
-        image: p.image_url || makePlaceholder(p.name, p.brand),
-        source: null, // Solo para assets locales, no aplica a Supabase
+        image: getValidImage(p.image_url, p.name),
+        source: null,
         prices: (p.prices || []).map(pr => ({
-          supermarketId: pr.supermarket_id,  // Ej: 'jumbo', 'lider'
+          supermarketId: pr.supermarket_id,
           price: pr.price,
-          stock: true,  // Todo lo que está en BD se considera en stock
+          stock: true,
           formattedUnit: pr.formatted_unit,
         })),
       }));
@@ -79,7 +90,7 @@ export function useSupabaseProducts() {
         name: p.name,
         brand: p.brand || 'Sin marca',
         category: p.category || 'General',
-        image: p.image_url || makePlaceholder(p.name, p.brand),
+        image: getValidImage(p.image_url, p.name),
         source: null,
         prices: (p.prices || []).map(pr => ({
           supermarketId: pr.supermarket_id,

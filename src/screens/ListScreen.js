@@ -19,12 +19,19 @@ export default function ListScreen({ navigation }) {
     if (listItems.length === 0) return [];
     
     const computed = supermarkets.map(store => {
+      const missingItems = [];
       const sum = listItems.reduce((acc, item) => {
         const p = item.prices.find(priceObj => priceObj.supermarketId === store.id);
-        const val = p ? p.price : 0;
-        return acc + (val * item.quantity);
+        if (p) {
+          return acc + (p.price * item.quantity);
+        } else {
+          missingItems.push(item.name);
+          // Penalización justa: Asumir el precio más alto del mercado para productos que este súper no tiene
+          const maxCompetitorPrice = Math.max(...(item.prices || []).map(pr => pr.price), 0);
+          return acc + ((maxCompetitorPrice || 9999) * item.quantity);
+        }
       }, 0);
-      return { ...store, total: sum };
+      return { ...store, total: sum, missingItems };
     });
     
     return computed.sort((a, b) => a.total - b.total);
@@ -76,25 +83,32 @@ export default function ListScreen({ navigation }) {
           />
         </TouchableOpacity>
         
-        <Image 
-          source={item.source || { uri: item.image }} 
-          style={[styles.image, isPurchased && styles.imagePurchased]} 
-        />
-        
-        <View style={styles.infoContainer}>
-          <Text style={[styles.name, isPurchased && styles.textPurchased]} numberOfLines={2}>
-            {item.name}
-          </Text>
-          <Text style={[styles.brand, isPurchased && styles.textPurchased]}>{item.brand}</Text>
-          <View style={styles.quantityControls}>
-            <TouchableOpacity onPress={() => updateQuantity(item.id, -1)} style={styles.qtyBtn}>
-              <Ionicons name="remove" size={18} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.qtyText}>{item.quantity}</Text>
-            <TouchableOpacity onPress={() => updateQuantity(item.id, 1)} style={styles.qtyBtn}>
-              <Ionicons name="add" size={18} color={colors.text} />
-            </TouchableOpacity>
+        <TouchableOpacity 
+          style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+          onPress={() => navigation.navigate('Buscar', { autoProduct: item.id })}
+          activeOpacity={0.7}
+        >
+          <Image 
+            source={item.source || { uri: item.image }} 
+            style={[styles.image, isPurchased && styles.imagePurchased]} 
+          />
+          
+          <View style={styles.infoContainer}>
+            <Text style={[styles.name, isPurchased && styles.textPurchased]} numberOfLines={2}>
+              {item.name}
+            </Text>
+            <Text style={[styles.brand, isPurchased && styles.textPurchased]}>{item.brand}</Text>
           </View>
+        </TouchableOpacity>
+
+        <View style={styles.quantityControls}>
+          <TouchableOpacity onPress={() => updateQuantity(item.id, -1)} style={styles.qtyBtn}>
+            <Ionicons name="remove" size={18} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.qtyText}>{item.quantity}</Text>
+          <TouchableOpacity onPress={() => updateQuantity(item.id, 1)} style={styles.qtyBtn}>
+            <Ionicons name="add" size={18} color={colors.text} />
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.trashBtn} onPress={() => removeItem(item.id)}>
@@ -161,9 +175,23 @@ export default function ListScreen({ navigation }) {
                 <View key={storeResult.id} style={[styles.summaryRow, isBest && styles.summaryRowBest]}>
                   <View style={styles.summaryStoreInfo}>
                     <View style={[styles.colorDot, { backgroundColor: storeResult.color }]} />
-                    <Text style={[styles.summaryStoreName, isBest && styles.summaryStoreNameBest]}>
-                      {storeResult.name}
-                    </Text>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={[styles.summaryStoreName, isBest && styles.summaryStoreNameBest]}>
+                        {storeResult.name}
+                      </Text>
+                      {storeResult.missingItems.length > 0 && (
+                        <View style={{ marginTop: 2 }}>
+                          <Text style={{ fontSize: 9, color: colors.danger, fontWeight: 'bold' }}>
+                            No hay stock de:
+                          </Text>
+                          {storeResult.missingItems.map((m, idx) => (
+                            <Text key={idx} style={{ fontSize: 9, color: colors.danger }} numberOfLines={1}>
+                              • {m}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                    </View>
                   </View>
                   <View style={styles.summaryPriceArea}>
                     {isBest && <Text style={styles.bestBadge}>Más Conveniente</Text>}
@@ -287,9 +315,9 @@ const styles = StyleSheet.create({
   summaryTitle: { fontSize: 11, fontWeight: 'bold', color: colors.textMuted, marginBottom: 4 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: colors.background },
   summaryRowBest: { backgroundColor: colors.success + '10', paddingHorizontal: 8, borderRadius: 6, marginHorizontal: -8, borderBottomWidth: 0 },
-  summaryStoreInfo: { flexDirection: 'row', alignItems: 'center' },
-  colorDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-  summaryStoreName: { fontSize: 12, color: colors.text },
+  summaryStoreInfo: { flexDirection: 'row', alignItems: 'flex-start', flex: 1, marginTop: 4 },
+  colorDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6, marginTop: 4 },
+  summaryStoreName: { fontSize: 13, color: colors.text },
   summaryStoreNameBest: { fontWeight: 'bold' },
   summaryPriceArea: { flexDirection: 'row', alignItems: 'center' },
   summaryTotal: { fontSize: 12, fontWeight: '600', color: colors.text },

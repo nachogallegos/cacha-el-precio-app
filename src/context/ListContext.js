@@ -1,47 +1,76 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from './AuthContext';
+import { supabase } from '../config/supabaseClient';
 
 export const ListContext = createContext();
 
 export const ListProvider = ({ children }) => {
   const [listItems, setListItems] = useState([]);
   const [savedCarts, setSavedCarts] = useState([]);
+  const { user } = useContext(AuthContext);
 
-  // Cargar al inicio
+  const [isLoadedList, setIsLoadedList] = useState(false);
+
+  // 1. Cargar desde la nube cuando el usuario entra
   useEffect(() => {
     const loadList = async () => {
+      if (!user) {
+        setListItems([]);
+        setSavedCarts([]);
+        setIsLoadedList(false);
+        return;
+      }
       try {
+        // Cargar caché rápido para UI fluida
         const storedList = await AsyncStorage.getItem('@superAhorro_list');
         if (storedList !== null) setListItems(JSON.parse(storedList));
         
-        const storedCarts = await AsyncStorage.getItem('@superAhorro_savedCarts');
-        if (storedCarts !== null) setSavedCarts(JSON.parse(storedCarts));
+        // Obtener verdad absoluta de Supabase
+        const { data, error } = await supabase.from('user_lists').select('*').eq('user_id', user.id).single();
+        if (data) {
+          setListItems(data.list_data || []);
+          setSavedCarts(data.saved_carts || []);
+        } else if (error && error.code === 'PGRST116') {
+          // Si no existe, crear la fila del usuario
+          await supabase.from('user_lists').insert({ user_id: user.id });
+        }
       } catch (e) {
-        console.log("Error cargando lista", e);
+        console.log("Error cargando lista de la nube", e);
+      } finally {
+        setIsLoadedList(true); // Ya podemos permitir guardar cambios nuevos
       }
     };
     loadList();
-  }, []);
+  }, [user]);
 
-  // Guardar al cambiar
+  // 2. Sincronizar cambios térmicos del Carrito (listItems)
   useEffect(() => {
+    if (!user || !isLoadedList) return;
     const saveList = async () => {
       try {
         await AsyncStorage.setItem('@superAhorro_list', JSON.stringify(listItems));
+        await supabase.from('user_lists').update({ list_data: listItems, updated_at: new Date() }).eq('user_id', user.id);
       } catch (e) {
-        console.log("Error guardando lista", e);
+        console.log("Error guardando lista en la nube", e);
       }
     };
     saveList();
-  }, [listItems]);
+  }, [listItems, user, isLoadedList]);
 
+  // 3. Sincronizar Historial de Carritos (savedCarts)
   useEffect(() => {
+    if (!user || !isLoadedList) return;
     const storeCarts = async () => {
-      try { await AsyncStorage.setItem('@superAhorro_savedCarts', JSON.stringify(savedCarts)); } 
-      catch (e) { console.log("Error guardando carritos", e); }
+      try {
+        await AsyncStorage.setItem('@superAhorro_savedCarts', JSON.stringify(savedCarts));
+        await supabase.from('user_lists').update({ saved_carts: savedCarts, updated_at: new Date() }).eq('user_id', user.id);
+      } catch (e) { 
+        console.log("Error guardando carritos", e); 
+      }
     };
     storeCarts();
-  }, [savedCarts]);
+  }, [savedCarts, user, isLoadedList]);
 
   const addToList = (product, priceItemStore) => {
     setListItems(prev => {
