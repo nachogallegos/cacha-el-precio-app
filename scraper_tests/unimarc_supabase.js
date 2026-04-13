@@ -42,7 +42,7 @@ async function scrapeUnimarc(query, category) {
 
   console.log(`[1/4] 🌐 Conectando a Unimarc...`);
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: "new",
     defaultViewport: { width: 1280, height: 800 },
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled']
   });
