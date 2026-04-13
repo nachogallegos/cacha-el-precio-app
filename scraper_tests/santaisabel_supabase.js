@@ -142,7 +142,7 @@ async function scrapeAndSave(query, category = 'Lácteos', supermarketId = 'sant
   console.log(`${'='.repeat(60)}\n`);
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'shell',
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 

@@ -49,7 +49,7 @@ async function scrapeLider(query, category = 'Lácteos') {
   console.log(`${'='.repeat(60)}\n`);
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'shell',
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
