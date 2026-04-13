@@ -16,8 +16,7 @@ export default function SearchScreen({ route }) {
   // Mezclar productos de Supabase con los de mockData (fallback)
   const fullProductsDatabase = supabaseProducts.length > 0 ? supabaseProducts : [];
   const availableCategories = useMemo(() => {
-    const cats = Array.from(new Set(fullProductsDatabase.map(p => p.category).filter(Boolean)));
-    return cats.length > 0 ? cats : ['Supermercado', 'Despensa', 'Lácteos', 'Bebidas e Infusiones', 'Carnes', 'Aseo', 'Cuidado Personal', 'Mascotas', 'Snacks', 'Bebés'];
+    return ['Despensa', 'Lácteos', 'Carnes', 'Fiambrería', 'Aseo Personal', 'Aseo Hogar', 'Mascotas', 'Bebidas', 'Frutas y Verduras', 'Snacks'];
   }, [fullProductsDatabase]);
 
   const [query, setQuery] = useState('');

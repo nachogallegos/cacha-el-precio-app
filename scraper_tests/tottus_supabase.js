@@ -123,15 +123,15 @@ async function scrapeTottus(query, category) {
 
 async function runAll() {
   await scrapeTottus('leche', 'Lácteos');
-  await scrapeTottus('queso', 'Lácteos');
   await scrapeTottus('arroz', 'Despensa');
-  await scrapeTottus('fideos', 'Despensa');
-  await scrapeTottus('bebida', 'Bebidas e Infusiones');
-  await scrapeTottus('cerveza', 'Bebidas e Infusiones');
-  await scrapeTottus('detergente', 'Aseo');
-  await scrapeTottus('shampoo', 'Cuidado Personal');
+  await scrapeTottus('carne molida', 'Carnes');
+  await scrapeTottus('jamon', 'Fiambrería');
+  await scrapeTottus('shampoo', 'Aseo Personal');
+  await scrapeTottus('detergente', 'Aseo Hogar');
   await scrapeTottus('comida perro', 'Mascotas');
-  await scrapeTottus('galletas', 'Snacks');
+  await scrapeTottus('coca cola', 'Bebidas');
+  await scrapeTottus('manzana', 'Frutas y Verduras');
+  await scrapeTottus('papas fritas', 'Snacks');
 }
 
 if (require.main === module) {

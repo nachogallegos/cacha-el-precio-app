@@ -251,15 +251,15 @@ async function scrapeAndSave(query, category = 'Lácteos', supermarketId = 'sant
 // ============================================================
 async function runAll() {
   await scrapeAndSave('leche', 'Lácteos');
-  await scrapeAndSave('queso', 'Lácteos');
   await scrapeAndSave('arroz', 'Despensa');
-  await scrapeAndSave('fideos', 'Despensa');
-  await scrapeAndSave('bebida', 'Bebidas e Infusiones');
-  await scrapeAndSave('cerveza', 'Bebidas e Infusiones');
-  await scrapeAndSave('detergente', 'Aseo');
-  await scrapeAndSave('shampoo', 'Cuidado Personal');
+  await scrapeAndSave('carne molida', 'Carnes');
+  await scrapeAndSave('jamon', 'Fiambrería');
+  await scrapeAndSave('shampoo', 'Aseo Personal');
+  await scrapeAndSave('detergente', 'Aseo Hogar');
   await scrapeAndSave('comida perro', 'Mascotas');
-  await scrapeAndSave('galletas', 'Snacks');
+  await scrapeAndSave('coca cola', 'Bebidas');
+  await scrapeAndSave('manzana', 'Frutas y Verduras');
+  await scrapeAndSave('papas fritas', 'Snacks');
   console.log('\n🌟 TODO SANTA ISABEL LISTO');
 }
 

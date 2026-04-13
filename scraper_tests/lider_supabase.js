@@ -162,15 +162,15 @@ async function scrapeLider(query, category = 'Lácteos') {
 
 async function runAll() {
   await scrapeLider('leche', 'Lácteos');
-  await scrapeLider('queso', 'Lácteos');
   await scrapeLider('arroz', 'Despensa');
-  await scrapeLider('fideos', 'Despensa');
-  await scrapeLider('bebida', 'Bebidas');
-  await scrapeLider('cerveza', 'Bebidas');
-  await scrapeLider('detergente', 'Aseo');
-  await scrapeLider('shampoo', 'Cuidado Personal');
+  await scrapeLider('carne molida', 'Carnes');
+  await scrapeLider('jamon', 'Fiambrería');
+  await scrapeLider('shampoo', 'Aseo Personal');
+  await scrapeLider('detergente', 'Aseo Hogar');
   await scrapeLider('comida perro', 'Mascotas');
-  await scrapeLider('galletas', 'Snacks');
+  await scrapeLider('coca cola', 'Bebidas');
+  await scrapeLider('manzana', 'Frutas y Verduras');
+  await scrapeLider('papas fritas', 'Snacks');
   console.log('\n🌟 TODO LIDER LISTO');
 }
 
