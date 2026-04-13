@@ -42,7 +42,7 @@ async function scrapeTottus(query, category) {
 
   console.log(`[1/4] 🌐 Conectando a Tottus (Falabella.com)...`);
   const browser = await puppeteer.launch({
-    headless: "new",
+    headless: true,
     defaultViewport: { width: 1280, height: 800 },
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
