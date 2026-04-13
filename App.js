@@ -1,5 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,16 +10,49 @@ import { AlertsProvider } from './src/context/AlertsContext';
 import { ActivityProvider } from './src/context/ActivityContext';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 
 function MainApp() {
-  const { user, isLoading } = useContext(AuthContext);
+  const { user, isLoading: isAuthLoading } = useContext(AuthContext);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(null);
 
-  if (isLoading) return <View style={{ flex: 1, backgroundColor: '#1E3A8A' }} />;
+  useEffect(() => {
+    async function checkOnboarding() {
+      try {
+        const value = await AsyncStorage.getItem('@has_seen_onboarding');
+        if (value !== null) {
+          setHasSeenOnboarding(true);
+        } else {
+          setHasSeenOnboarding(false);
+        }
+      } catch (err) {
+        setHasSeenOnboarding(false);
+      }
+    }
+    checkOnboarding();
+  }, []);
 
+  const finishOnboarding = async () => {
+    await AsyncStorage.setItem('@has_seen_onboarding', 'true');
+    setHasSeenOnboarding(true);
+  };
+
+  // Pantallas de Carga Iniciales
+  if (isAuthLoading || hasSeenOnboarding === null) {
+    return <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />;
+  }
+
+  // Si primera vez -> Onboarding
+  if (!hasSeenOnboarding) {
+    return <OnboardingScreen onFinish={finishOnboarding} />;
+  }
+
+  // Si no está logueado
   if (!user) {
     return <LoginScreen />;
   }
 
+  // Si todo esta okay -> App Principal
   return (
     <ActivityProvider>
       <ListProvider>

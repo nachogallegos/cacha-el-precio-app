@@ -50,6 +50,7 @@ export default function TabNavigator() {
           fontSize: 12,
           fontWeight: 'bold',
         },
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.primary,
         },

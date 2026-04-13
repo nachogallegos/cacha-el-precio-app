@@ -123,7 +123,15 @@ async function scrapeUnimarc(query, category) {
 
 async function runAll() {
   await scrapeUnimarc('leche', 'Lácteos');
-  // Se pueden añadir más búsquedas...
+  await scrapeUnimarc('queso', 'Lácteos');
+  await scrapeUnimarc('arroz', 'Despensa');
+  await scrapeUnimarc('fideos', 'Despensa');
+  await scrapeUnimarc('bebida', 'Bebidas e Infusiones');
+  await scrapeUnimarc('cerveza', 'Bebidas e Infusiones');
+  await scrapeUnimarc('detergente', 'Aseo');
+  await scrapeUnimarc('shampoo', 'Cuidado Personal');
+  await scrapeUnimarc('comida perro', 'Mascotas');
+  await scrapeUnimarc('galletas', 'Snacks');
 }
 
 if (require.main === module) {

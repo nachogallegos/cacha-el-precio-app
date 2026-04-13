@@ -162,8 +162,15 @@ async function scrapeLider(query, category = 'Lácteos') {
 
 async function runAll() {
   await scrapeLider('leche', 'Lácteos');
+  await scrapeLider('queso', 'Lácteos');
   await scrapeLider('arroz', 'Despensa');
-  await scrapeLider('aceite', 'Despensa');
+  await scrapeLider('fideos', 'Despensa');
+  await scrapeLider('bebida', 'Bebidas');
+  await scrapeLider('cerveza', 'Bebidas');
+  await scrapeLider('detergente', 'Aseo');
+  await scrapeLider('shampoo', 'Cuidado Personal');
+  await scrapeLider('comida perro', 'Mascotas');
+  await scrapeLider('galletas', 'Snacks');
   console.log('\n🌟 TODO LIDER LISTO');
 }
 

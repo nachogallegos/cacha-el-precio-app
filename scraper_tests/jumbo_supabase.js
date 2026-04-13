@@ -251,8 +251,15 @@ async function scrapeAndSave(query, category = 'Lácteos', supermarketId = 'jumb
 // ============================================================
 async function runAll() {
   await scrapeAndSave('leche', 'Lácteos');
+  await scrapeAndSave('queso', 'Lácteos');
   await scrapeAndSave('arroz', 'Despensa');
-  await scrapeAndSave('aceite', 'Despensa');
+  await scrapeAndSave('fideos', 'Despensa');
+  await scrapeAndSave('bebida', 'Bebidas');
+  await scrapeAndSave('cerveza', 'Bebidas');
+  await scrapeAndSave('detergente', 'Aseo');
+  await scrapeAndSave('shampoo', 'Cuidado Personal');
+  await scrapeAndSave('comida perro', 'Mascotas');
+  await scrapeAndSave('galletas', 'Snacks');
   console.log('\n🌟 TODO JUMBO LISTO');
 }
 

@@ -4,9 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { supermarkets, fullProductsDatabase } from '../data/mockData';
 import { ActivityContext } from '../context/ActivityContext';
+import { AuthContext } from '../context/AuthContext';
 import StoreDetailScreen from './StoreDetailScreen';
 
 export default function HomeScreen({ navigation }) {
+  const { user, profile } = useContext(AuthContext);
   const { totalSavings, recentSearches } = useContext(ActivityContext);
   const [storeModalVisible, setStoreModalVisible] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
@@ -34,13 +36,14 @@ export default function HomeScreen({ navigation }) {
     setStoreModalVisible(false);
     navigation.navigate('Buscar', { focusStore: storeId });
   };
+  const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Comprador';
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hola, Comprador</Text>
-            <Text style={styles.appName}>Cacha el Precio</Text>
+            <Text style={styles.greeting}>Hola, {firstName}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Perfil')} style={styles.profileBtn}>
             <Ionicons name="person" size={24} color={colors.primary} />
@@ -150,9 +153,8 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, padding: 16 },
   
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 4 },
-  greeting: { fontSize: 12, color: colors.textMuted },
-  appName: { fontSize: 20, fontWeight: 'bold', color: colors.primary, marginTop: 0 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, paddingHorizontal: 4 },
+  greeting: { fontSize: 28, color: colors.text, fontWeight: 'bold' },
   profileBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.card, justifyContent: 'center', alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   
   savingsCard: { backgroundColor: colors.success, borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 4, shadowColor: colors.success, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, marginBottom: 16 },

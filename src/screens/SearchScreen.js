@@ -17,7 +17,7 @@ export default function SearchScreen({ route }) {
   const fullProductsDatabase = supabaseProducts.length > 0 ? supabaseProducts : [];
   const availableCategories = useMemo(() => {
     const cats = Array.from(new Set(fullProductsDatabase.map(p => p.category).filter(Boolean)));
-    return cats.length > 0 ? cats : ['Lácteos', 'Despensa', 'Bebidas'];
+    return cats.length > 0 ? cats : ['Supermercado', 'Despensa', 'Lácteos', 'Bebidas e Infusiones', 'Carnes', 'Aseo', 'Cuidado Personal', 'Mascotas', 'Snacks', 'Bebés'];
   }, [fullProductsDatabase]);
 
   const [query, setQuery] = useState('');
@@ -25,6 +25,7 @@ export default function SearchScreen({ route }) {
   const [selectedProduct, setSelectedProduct] = useState(null); 
   const [activeCategory, setActiveCategory] = useState('Lácteos'); // Por defecto para evitar ver "Todos" mezclados
   const [activeStores, setActiveStores] = useState(supermarkets.map(s => s.id));
+  const [catalogSortOption, setCatalogSortOption] = useState('relevance');
   const [sortAscending, setSortAscending] = useState(true);
   const [detailItem, setDetailItem] = useState(null); 
   const [touchStartX, setTouchStartX] = useState(0);
@@ -127,9 +128,22 @@ export default function SearchScreen({ route }) {
 
   // Lista de Categoría para el modo exploración
   const categoryProducts = useMemo(() => {
-    if (!activeCategory) return fullProductsDatabase; // Sin filtro -> todos
-    return fullProductsDatabase.filter(p => p.category === activeCategory);
-  }, [activeCategory, fullProductsDatabase]);
+    let list = activeCategory ? fullProductsDatabase.filter(p => p.category === activeCategory) : [...fullProductsDatabase];
+    
+    // Función auxiliar para extraer el mejor precio disponible considerando los supermercados activos
+    const getMinPrice = (p) => {
+      const validPrices = p.prices.filter(pr => activeStores.includes(pr.supermarketId) && pr.stock);
+      return validPrices.length > 0 ? Math.min(...validPrices.map(pr => pr.price)) : 9999999;
+    };
+
+    if (catalogSortOption === 'price_asc') {
+      list.sort((a, b) => getMinPrice(a) - getMinPrice(b));
+    } else if (catalogSortOption === 'name_asc') {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return list;
+  }, [activeCategory, fullProductsDatabase, catalogSortOption, activeStores]);
 
   const handleAddToList = (priceItem) => {
     addToList(selectedProduct);
@@ -226,11 +240,39 @@ export default function SearchScreen({ route }) {
             </ScrollView>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.catalogGrid}>
-              <View style={styles.catalogHeader}>
-                <Text style={styles.catalogTitle}>
-                  {activeCategory ? `Productos de ${activeCategory}` : 'Todos los productos'}
-                </Text>
-                {dbLoading && <ActivityIndicator size="small" color={colors.primary} style={{marginLeft: 8}} />}
+              <View style={[styles.catalogHeader, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12}}>
+                  <Text style={styles.catalogTitle}>
+                    {activeCategory ? `Catálogo de ${activeCategory}` : 'Todos los productos'}
+                  </Text>
+                  {dbLoading && <ActivityIndicator size="small" color={colors.primary} style={{marginLeft: 8}} />}
+                </View>
+                
+                {/* Selector de Orden */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingRight: 16}}>
+                  <Text style={{color: colors.textMuted, fontSize: 12, marginRight: 8, alignSelf: 'center'}}>Ordenar por:</Text>
+                  
+                  <TouchableOpacity 
+                    style={[styles.sortChip, catalogSortOption === 'relevance' && styles.sortChipActive]} 
+                    onPress={() => setCatalogSortOption('relevance')}
+                  >
+                    <Text style={[styles.sortChipText, catalogSortOption === 'relevance' && styles.sortChipTextActive]}>Relevancia</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.sortChip, catalogSortOption === 'price_asc' && styles.sortChipActive]} 
+                    onPress={() => setCatalogSortOption('price_asc')}
+                  >
+                    <Text style={[styles.sortChipText, catalogSortOption === 'price_asc' && styles.sortChipTextActive]}>Menor Precio</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.sortChip, catalogSortOption === 'name_asc' && styles.sortChipActive]} 
+                    onPress={() => setCatalogSortOption('name_asc')}
+                  >
+                    <Text style={[styles.sortChipText, catalogSortOption === 'name_asc' && styles.sortChipTextActive]}>A-Z</Text>
+                  </TouchableOpacity>
+                </ScrollView>
               </View>
 
               <View style={styles.gridWrap}>
@@ -437,8 +479,13 @@ const styles = StyleSheet.create({
 
   // Grilla de Catálogo
   catalogGrid: { padding: 12 },
-  catalogHeader: { marginBottom: 12 },
-  catalogTitle: { fontSize: 16, fontWeight: 'bold', color: colors.text },
+  catalogHeader: { marginBottom: 16 },
+  catalogTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text },
+  sortChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: colors.border, marginRight: 8 },
+  sortChipActive: { backgroundColor: colors.primary },
+  sortChipText: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
+  sortChipTextActive: { color: colors.card, fontWeight: 'bold' },
+  
   gridWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   gridItemCard: { width: '31.5%', backgroundColor: colors.card, padding: 8, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
   gridImg: { width: 50, height: 50, resizeMode: 'contain', marginBottom: 8 },
