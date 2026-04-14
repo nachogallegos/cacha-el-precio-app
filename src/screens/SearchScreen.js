@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, SafeAreaView, Alert, Keyboard, Modal, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { supermarkets } from '../data/mockData';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 import { ListContext } from '../context/ListContext';
@@ -36,6 +36,8 @@ export default function SearchScreen({ route }) {
   const { addToList } = useContext(ListContext);
   const { addAlert } = useContext(AlertsContext);
   const { addSavings, addRecentSearch } = useContext(ActivityContext);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
 
   useEffect(() => {
     if (route?.params?.autoProduct) {
@@ -438,7 +440,7 @@ export default function SearchScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1 },
   

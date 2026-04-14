@@ -1,10 +1,16 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Modal, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import { View, Text, StyleSheet, Modal, SafeAreaView, TouchableOpacity, ScrollView, Image, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { fullProductsDatabase } from '../data/mockData';
 
+const { height } = Dimensions.get('window');
+
 export default function StoreDetailScreen({ visible, store, onClose, onSearchInStore }) {
+  const panY = useRef(new Animated.Value(height)).current;
+  const colors = useAppColors();
+  const styles = getStyles(colors);
+
   if (!store) return null;
 
   // Seleccionar 4 productos para simular "Mejores Ofertas Locales"
@@ -98,7 +104,7 @@ export default function StoreDetailScreen({ visible, store, onClose, onSearchInS
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1 },
   navHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 20, paddingBottom: 20 },
   backBtn: { padding: 4, backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 20 },

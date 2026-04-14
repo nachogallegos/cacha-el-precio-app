@@ -11,10 +11,15 @@ import { ActivityProvider } from './src/context/ActivityContext';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import { colors, useAppColors } from './src/theme/colors';
+
+
 
 function MainApp() {
   const { user, isLoading: isAuthLoading } = useContext(AuthContext);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(null);
+  const activeColors = useAppColors();
+  const styles = getStyles(activeColors);
 
   useEffect(() => {
     async function checkOnboarding() {
@@ -39,7 +44,7 @@ function MainApp() {
 
   // Pantallas de Carga Iniciales
   if (isAuthLoading || hasSeenOnboarding === null) {
-    return <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />;
+    return <View style={styles.container} />;
   }
 
   // Si primera vez -> Onboarding
@@ -76,3 +81,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const getStyles = (colors) => ({
+  container: { flex: 1, backgroundColor: colors.background }
+});

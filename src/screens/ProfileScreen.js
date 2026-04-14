@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { AuthContext } from '../context/AuthContext';
 import { ActivityContext } from '../context/ActivityContext';
 
@@ -9,6 +9,8 @@ const zonesList = ['Región Metropolitana', 'Región de Valparaíso', 'Región d
 
 export default function ProfileScreen() {
   const { user, profile, logout, updateZone } = useContext(AuthContext);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
   const { resetSavings } = useContext(ActivityContext);
 
   if (!user) return null;
@@ -123,8 +125,7 @@ export default function ProfileScreen() {
   );
 }
 
-
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { padding: 16 },
   

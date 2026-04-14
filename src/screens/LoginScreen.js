@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, TextInput, ActivityIndicator, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { AuthContext } from '../context/AuthContext';
 
 export default function LoginScreen() {
@@ -11,6 +11,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
 
   const handleLogin = async () => {
     if (!email || !password) return Alert.alert('Faltan datos', 'Ingresa tu email y contraseña.');
@@ -45,9 +47,7 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.container} bounces={false} keyboardShouldPersistTaps="handled">
           
           <View style={styles.branding}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="cart" size={60} color={colors.primary} />
-            </View>
+            <Image source={require('../../assets/icon.png')} style={styles.realLogo} />
             <Text style={styles.title}>Cacha el Precio</Text>
             <Text style={styles.subtitle}>Tu cotizador definitivo de supermercados chilenos.</Text>
           </View>
@@ -129,14 +129,14 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.primary },
+const getStyles = (colors) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flexGrow: 1, justifyContent: 'space-between' },
   
   branding: { alignItems: 'center', marginTop: '15%', paddingHorizontal: 32 },
-  logoCircle: { width: 100, height: 100, backgroundColor: colors.card, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 20, elevation: 10, shadowColor: '#000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 8 },
-  title: { fontSize: 32, fontWeight: '900', color: colors.card, marginBottom: 10, textAlign: 'center' },
-  subtitle: { fontSize: 15, color: 'rgba(255,255,255,0.8)', textAlign: 'center', lineHeight: 22 },
+  realLogo: { width: 130, height: 130, borderRadius: 28, marginBottom: 20, resizeMode: 'contain', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  title: { fontSize: 32, fontWeight: '900', color: colors.text, marginBottom: 10, textAlign: 'center' },
+  subtitle: { fontSize: 15, color: colors.textMuted, textAlign: 'center', lineHeight: 22 },
 
   actionsBox: { backgroundColor: colors.card, marginHorizontal: 20, padding: 24, borderRadius: 24, elevation: 5, shadowColor: '#000', shadowOffset:{width:0, height: 10}, shadowOpacity: 0.1, shadowRadius: 20, marginTop: 32 },
   

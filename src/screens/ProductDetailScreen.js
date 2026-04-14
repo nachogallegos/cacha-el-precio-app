@@ -1,7 +1,7 @@
 import React, { useMemo, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { supermarkets } from '../data/mockData';
 import { ListContext } from '../context/ListContext';
 import { AlertsContext } from '../context/AlertsContext';
@@ -9,6 +9,8 @@ import { AlertsContext } from '../context/AlertsContext';
 export default function ProductDetailScreen({ visible, onClose, product, storeResult }) {
   const { addToList } = useContext(ListContext);
   const { addAlert } = useContext(AlertsContext);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
 
   // Derivar de dependencias condicionalmente para no crashear
   const { storeDef, historyData, minPrice, maxPrice, avgPrice, isGoodDeal } = useMemo(() => {
@@ -163,7 +165,7 @@ export default function ProductDetailScreen({ visible, onClose, product, storeRe
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   navHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
   backBtn: { padding: 4, backgroundColor: colors.card, borderRadius: 8, borderWidth: 1, borderColor: colors.border },

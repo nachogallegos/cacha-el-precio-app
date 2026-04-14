@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, SafeAreaView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,6 +29,8 @@ const SLIDES = [
 export default function OnboardingScreen({ onFinish }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
 
   const viewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems[0]) {
@@ -110,7 +112,7 @@ export default function OnboardingScreen({ onFinish }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { alignItems: 'flex-end', padding: 20 },
   skipText: { color: colors.textMuted, fontSize: 16, fontWeight: '600' },

@@ -1,14 +1,17 @@
 import React, { useContext, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Modal, Keyboard, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { supermarkets } from '../data/mockData';
 import { AlertsContext } from '../context/AlertsContext';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 
 export default function AlertsScreen() {
-  const { alerts, addAlert, updateAlert, togglePause, removeAlert } = useContext(AlertsContext);
-  const { products: fullProductsDatabase } = useSupabaseProducts();
+  const { alerts, removeAlert, updateAlertTarget } = useContext(AlertsContext);
+  const { products: dbProducts, loading: dbLoading } = useSupabaseProducts();
+  
+  const colors = useAppColors();
+  const styles = getStyles(colors);
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingAlertId, setEditingAlertId] = useState(null);
@@ -20,7 +23,7 @@ export default function AlertsScreen() {
   // Autocomplete
   const searchSuggestions = useMemo(() => {
     if (searchQuery.trim().length < 2) return [];
-    return fullProductsDatabase
+    return dbProducts
       .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
       .slice(0, 5);
   }, [searchQuery]);
@@ -42,7 +45,7 @@ export default function AlertsScreen() {
   };
 
   const handleEditOpen = (alert) => {
-    const product = fullProductsDatabase.find(p => p.id === alert.productId);
+    const product = dbProducts.find(p => p.id === alert.productId);
     setEditingAlertId(alert.id);
     setSelectedProduct(product);
     setTargetPriceInput(alert.targetPrice.toString());
@@ -77,7 +80,7 @@ export default function AlertsScreen() {
   // Computar el estado real de cada alerta
   const computedAlerts = useMemo(() => {
     return alerts.map(alert => {
-      const product = fullProductsDatabase.find(p => p.id === alert.productId);
+      const product = dbProducts.find(p => p.id === alert.productId);
       
       // Si aùn no carga la DB
       if(!product) return { ...alert, triggered: false, currentBestPrice: 0 };
@@ -100,7 +103,7 @@ export default function AlertsScreen() {
         bestStoreName
       };
     });
-  }, [alerts, fullProductsDatabase]);
+  }, [alerts, dbProducts]);
 
 
   return (
@@ -259,7 +262,7 @@ export default function AlertsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1 },
   scroll: { padding: 16 },

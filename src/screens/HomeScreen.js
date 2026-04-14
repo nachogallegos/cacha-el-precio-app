@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { supermarkets, fullProductsDatabase } from '../data/mockData';
 import { ActivityContext } from '../context/ActivityContext';
 import { AuthContext } from '../context/AuthContext';
@@ -12,6 +12,8 @@ export default function HomeScreen({ navigation }) {
   const { totalSavings, recentSearches } = useContext(ActivityContext);
   const [storeModalVisible, setStoreModalVisible] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
   const offers = fullProductsDatabase.slice(0, 5).map((p, i) => {
     const bestPriceObj = p.prices.find(pr => pr.stock);
     const superm = supermarkets.find(s => s.id === (bestPriceObj ? bestPriceObj.supermarketId : supermarkets[0].id));
@@ -149,7 +151,7 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, padding: 16 },
   

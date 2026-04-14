@@ -1,15 +1,19 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Alert, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useAppColors } from '../theme/colors';
 import { supermarkets } from '../data/mockData';
 import { ListContext } from '../context/ListContext';
+import { ActivityContext } from '../context/ActivityContext';
 
 export default function ListScreen({ navigation }) {
   const { 
     listItems, updateQuantity, togglePurchased, removeItem, clearList, clearPurchased, 
     savedCarts, saveCurrentCart, loadCart, deleteSavedCart 
   } = useContext(ListContext);
+  const { addSavings } = useContext(ActivityContext);
+  const colors = useAppColors();
+  const styles = getStyles(colors);
 
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
@@ -282,7 +286,7 @@ export default function ListScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1 },
   header: { paddingTop: 16, paddingBottom: 16, paddingLeft: 16, paddingRight: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
