@@ -10,3 +10,8 @@ npm-debug.*
 *.orig
 .*.swp
 .DS_Store
+
+# ENV files
+.env
+.env.local
+.env.*
